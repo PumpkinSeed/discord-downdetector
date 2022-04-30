@@ -27,8 +27,6 @@ func check(body env.Check) {
 	}
 }
 
-// TODO
-// I could remove the type from Check
 func Run() {
 	log.Printf("[RUNNING] Downdetector")
 
@@ -41,13 +39,13 @@ func Run() {
 		// Don't wait between objects
 		interval, unit := utils.GetTime(env.Configuration().Checks[0].Interval)
 		switch unit {
-			case "h":
-				time.Sleep(time.Duration(interval) * time.Hour)
-			case "m":
-				time.Sleep(time.Duration(interval) * time.Minute)
-			case "s":
-				time.Sleep(time.Duration(interval) * time.Second)
+		case "h":
+			time.Sleep(time.Duration(interval) * time.Hour)
+		case "m":
+			time.Sleep(time.Duration(interval) * time.Minute)
+		case "s":
+			time.Sleep(time.Duration(interval) * time.Second)
 		}
 	}
-	
+
 }

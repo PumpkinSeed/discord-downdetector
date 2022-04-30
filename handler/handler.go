@@ -16,6 +16,7 @@ const (
 
 var channelName string
 
+// Check is the endpoint alive
 func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
 	code := checkHealth(body)
 	if code != 200 {
@@ -25,6 +26,7 @@ func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
 	}
 }
 
+// Send an embed to the downdetector channel
 func unreachable(check env.Check, code int) (string, *discordgo.MessageEmbed, error) {
 	status := strconv.Itoa(code)
 	message := embed.NewEmbed().
@@ -35,13 +37,14 @@ func unreachable(check env.Check, code int) (string, *discordgo.MessageEmbed, er
 	return env.Configuration().ChannelName, message.MessageEmbed, nil
 }
 
+// Return the status code of the request
 func checkHealth(check env.Check) int {
-	resp, err := http.Get(check.Type+"://"+check.Value)
-    if err != nil {
-        log.Println("[ERROR]", err)
+	resp, err := http.Get(check.Type + "://" + check.Value)
+	if err != nil {
+		log.Println("[ERROR]", err)
 		return resp.StatusCode
-    }
-    defer resp.Body.Close()
+	}
+	defer resp.Body.Close()
 
 	return resp.StatusCode
 }
