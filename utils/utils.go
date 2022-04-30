@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/infiniteloopcloud/discord-downdetector/env"
@@ -11,13 +12,20 @@ import (
 var session *discordgo.Session
 var channelsCache map[string]string
 
+func GetTime(x string) (int, string) {
+	i := x[len(x)-1:]
+	unitVal := x[:len(x)-1]
+	unit, _ := strconv.Atoi(unitVal)
+	return unit, i
+}
+
 func GetEvent(raw []byte) (string, error) {
 	var static env.Static
 	err := json.Unmarshal(raw, &static)
 	if err != nil {
 		return "", err
 	}
-	return static.Checks[0].Type, nil
+	return env.Configuration().ChannelName, nil
 }
 
 func GetChannelID(name string) string {

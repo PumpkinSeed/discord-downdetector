@@ -3,7 +3,6 @@ package handler
 import (
 	"log"
 	"net"
-	"strconv"
 	"time"
 
 	embed "github.com/Clinet/discordgo-embed"
@@ -28,24 +27,22 @@ func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
 func unreachable(check env.Check) (string, *discordgo.MessageEmbed, error) {
 
 	message := embed.NewEmbed().
-		SetAuthor(check.Type).
-		SetTitle("["+check.Value+"] Host unreachable").
+		SetAuthor("Port " + check.Port).
+		SetTitle("[Host unreachable] " + check.Value).
 		SetColor(warning)
 
-	return check.ChannelName, message.MessageEmbed, nil
+	return env.Configuration().ChannelName, message.MessageEmbed, nil
 }
 
 func checkHealth(check env.Check) bool {
 	timeout := 1 * time.Second
-	port := strconv.Itoa(check.Port)
 
-	conn, err := net.DialTimeout("tcp", net.JoinHostPort(check.Value, port), timeout)
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(check.Value, check.Port), timeout)
 	if err != nil {
-		log.Println("Connecting error:", err)
+		log.Println("[ERROR] unreachable", check.Value+":"+check.Port)
 	}
 	if conn != nil {
 		defer conn.Close()
-		log.Println("[DEBUG] Reachable", net.JoinHostPort(check.Value, port))
 		return true
 	}
 

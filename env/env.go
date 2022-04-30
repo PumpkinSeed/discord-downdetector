@@ -12,20 +12,19 @@ var (
 	ConfigFlag    string = "DOWNDETECTOR_CONFIG"
 )
 
-// Later move these to types.go
 type Static struct {
 	BotToken    string `json:"bot_token"`
 	BotGuild    string `json:"bot_guild"`
 	Address     string `json:"address"`
-	Checks []Check
+	ChannelName string `json:"channelName"`
+	Checks      []Check
 }
 
 type Check struct {
-	ChannelName string `json:"channelName"`
-	Port           int `json:"port"`
-	Type        string `json:"type"`
-	Value       string `json:"value"`
-	Interval    string `json:"interval"`
+	Port     string `json:"port"`
+	Type     string `json:"type"`
+	Value    string `json:"value"`
+	Interval string `json:"interval"`
 }
 
 func Configuration() *Static {
