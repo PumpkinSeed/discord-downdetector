@@ -2,8 +2,8 @@ package handler
 
 import (
 	"log"
-	"net"
-	"time"
+	"net/http"
+	"strconv"
 
 	embed "github.com/Clinet/discordgo-embed"
 	"github.com/bwmarrin/discordgo"
@@ -17,34 +17,31 @@ const (
 var channelName string
 
 func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
-	if !checkHealth(body) {
-		return unreachable(body)
+	code := checkHealth(body)
+	if code != 200 {
+		return unreachable(body, code)
 	} else {
 		return "", nil, nil
 	}
 }
 
-func unreachable(check env.Check) (string, *discordgo.MessageEmbed, error) {
-
+func unreachable(check env.Check, code int) (string, *discordgo.MessageEmbed, error) {
+	status := strconv.Itoa(code)
 	message := embed.NewEmbed().
-		SetAuthor("Port " + check.Port).
+		SetAuthor("Status code: " + status).
 		SetTitle("[Host unreachable] " + check.Value).
 		SetColor(warning)
 
 	return env.Configuration().ChannelName, message.MessageEmbed, nil
 }
 
-func checkHealth(check env.Check) bool {
-	timeout := 1 * time.Second
+func checkHealth(check env.Check) int {
+	resp, err := http.Get(check.Type+"://"+check.Value)
+    if err != nil {
+        log.Println("[ERROR]", err)
+		return resp.StatusCode
+    }
+    defer resp.Body.Close()
 
-	conn, err := net.DialTimeout("tcp", net.JoinHostPort(check.Value, check.Port), timeout)
-	if err != nil {
-		log.Println("[ERROR] unreachable", check.Value+":"+check.Port)
-	}
-	if conn != nil {
-		defer conn.Close()
-		return true
-	}
-
-	return false
+	return resp.StatusCode
 }

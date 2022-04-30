@@ -21,7 +21,6 @@ type Static struct {
 }
 
 type Check struct {
-	Port     string `json:"port"`
 	Type     string `json:"type"`
 	Value    string `json:"value"`
 	Interval string `json:"interval"`
