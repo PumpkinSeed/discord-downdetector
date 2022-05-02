@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -15,7 +16,10 @@ var channelsCache map[string]string
 func GetTime(x string) (int, string) {
 	i := x[len(x)-1:]
 	unitVal := x[:len(x)-1]
-	unit, _ := strconv.Atoi(unitVal)
+	unit, err := strconv.Atoi(unitVal)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to parse the data in interval: %s", unitVal))
+	}
 	return unit, i
 }
 
