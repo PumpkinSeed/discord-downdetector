@@ -18,12 +18,18 @@ var channelName string
 
 // Check is the endpoint alive
 func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
+	var statusCode = http.StatusOK
 	code := checkHealth(body)
-	if code != 200 {
+
+	if body.Parameters != nil && body.Parameters.StatusCode != 0 {
+		statusCode = body.Parameters.StatusCode
+	}
+	if code != statusCode {
 		return unreachable(body, code)
 	} else {
 		return "", nil, nil
 	}
+
 }
 
 // Send an embed to the downdetector channel
