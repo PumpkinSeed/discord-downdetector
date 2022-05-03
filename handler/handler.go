@@ -2,8 +2,9 @@ package handler
 
 import (
 	"log"
+	"net"
 	"net/http"
-	"strconv"
+	"time"
 
 	embed "github.com/Clinet/discordgo-embed"
 	"github.com/bwmarrin/discordgo"
@@ -18,25 +19,22 @@ var channelName string
 
 // Check is the endpoint alive
 func Handle(body env.Check) (string, *discordgo.MessageEmbed, error) {
-	var statusCode = http.StatusOK
-	code := checkHealth(body)
-
-	if body.Parameters != nil && body.Parameters.StatusCode != 0 {
-		statusCode = body.Parameters.StatusCode
+	var isAlive = true
+	log.Printf("%s [INFO] Check happened for %s with %s type", time.Now().Format(time.RFC3339), body.Value, body.Type)
+	switch body.Type {
+	case "http":
+		isAlive = checkHTTP(body)
 	}
-	if code != statusCode {
-		return unreachable(body, code)
-	} else {
-		return "", nil, nil
+	if !isAlive {
+		return unreachable(body)
 	}
-
+	return "", nil, nil
 }
 
-// Send an embed to the downdetector channel
-func unreachable(check env.Check, code int) (string, *discordgo.MessageEmbed, error) {
-	status := strconv.Itoa(code)
+// Send an embed to the down detector channel
+func unreachable(check env.Check) (string, *discordgo.MessageEmbed, error) {
 	message := embed.NewEmbed().
-		SetAuthor("Status code: " + status).
+		SetAuthor(check.Type + " detector check failed").
 		SetTitle("[Host unreachable] " + check.Value).
 		SetColor(warning)
 
@@ -44,13 +42,31 @@ func unreachable(check env.Check, code int) (string, *discordgo.MessageEmbed, er
 }
 
 // Return the status code of the request
-func checkHealth(check env.Check) int {
-	resp, err := http.Get(check.Type + "://" + check.Value)
+func checkHTTP(body env.Check) bool {
+	req, _ := http.NewRequest("GET", body.Value, nil)
+	client := http.DefaultClient
+	client.Timeout = 10 * time.Second
+	netTransport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 10 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+	client.Transport = netTransport
+
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("[ERROR]", err)
-		return resp.StatusCode
+		return false
 	}
 	defer resp.Body.Close()
 
-	return resp.StatusCode
+	var statusCode = http.StatusOK
+	if body.Parameters != nil && body.Parameters.StatusCode != 0 {
+		statusCode = body.Parameters.StatusCode
+	}
+	if resp.StatusCode != statusCode {
+		return false
+	}
+	return true
 }

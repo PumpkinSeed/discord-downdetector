@@ -13,11 +13,10 @@ var (
 )
 
 type Static struct {
-	BotToken    string `json:"bot_token"`
-	BotGuild    string `json:"bot_guild"`
-	Address     string `json:"address"`
-	ChannelName string `json:"channelName"`
-	Checks      []Check
+	BotToken    string  `json:"bot_token"`
+	BotGuild    string  `json:"bot_guild"`
+	ChannelName string  `json:"channel_name"`
+	Checks      []Check `json:"checks"`
 }
 
 type Check struct {
@@ -37,7 +36,7 @@ func Configuration() *Static {
 		if path = os.Getenv(ConfigFlag); path == "" {
 			path = "./config.json"
 		}
-		
+
 		file, err := ioutil.ReadFile(path)
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err.Error())
